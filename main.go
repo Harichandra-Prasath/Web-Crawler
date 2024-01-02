@@ -8,10 +8,10 @@ import (
 	"golang.org/x/net/html"
 )
 
-func Getallnodes(node *html.Node, q *Queue, target string) {
+func Getallnodes(node *html.Node, q *Queue) {
 	var crawl func(*html.Node)
 	crawl = func(node *html.Node) {
-		if node.Type == html.ElementNode && node.Data == target {
+		if node.Type == html.ElementNode && node.Data == "a" {
 			for _, attr := range node.Attr {
 				if attr.Key == "href" {
 					if strings.HasPrefix(attr.Val, "https://scrapeme.live/shop/") && !q.contains(attr.Val) {
@@ -41,7 +41,7 @@ func main() {
 		}
 		doc, _ := html.Parse(res.Body)
 
-		Getallnodes(doc, q, "a")
+		Getallnodes(doc, q)
 
 	}
 }
