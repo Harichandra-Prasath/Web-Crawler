@@ -16,7 +16,7 @@ func Getallnodes(node *html.Node, q *Queue, target string) {
 				if attr.Key == "href" {
 					if strings.HasPrefix(attr.Val, "https://scrapeme.live/shop/") && !q.contains(attr.Val) {
 						q.append(attr.Val)
-						fmt.Print(attr.Val)
+						fmt.Printf("Added element %s\n", attr.Val)
 					}
 
 				}
@@ -32,10 +32,9 @@ func Getallnodes(node *html.Node, q *Queue, target string) {
 func main() {
 	q := &Queue{}
 	q.append("https://scrapeme.live/shop/")
-	n := 1
-	for n <= 1 {
-		fmt.Print(n)
+	for len(q.Elements) > 0 {
 		curr := q.popleft()
+		fmt.Printf("Popped element %s\n", curr)
 		res, err := http.Get(curr)
 		if err != nil {
 			fmt.Print("error occured")
@@ -43,16 +42,18 @@ func main() {
 		doc, _ := html.Parse(res.Body)
 
 		Getallnodes(doc, q, "a")
-		n = n + 1
+
 	}
 }
 
 type Queue struct {
 	Elements []string
+	history  []string
 }
 
 func (q *Queue) append(element string) {
 	q.Elements = append(q.Elements, element)
+	q.history = append(q.history, element)
 }
 
 func (q *Queue) popleft() string {
@@ -66,7 +67,7 @@ func (q *Queue) popleft() string {
 }
 
 func (q *Queue) contains(element string) bool {
-	for _, el := range q.Elements {
+	for _, el := range q.history {
 		if el == element {
 			return true
 		}
