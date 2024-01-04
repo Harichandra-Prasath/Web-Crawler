@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"golang.org/x/net/html"
 )
@@ -16,7 +18,6 @@ func Getallnodes(node *html.Node, q *Queue) {
 				if attr.Key == "href" {
 					if strings.HasPrefix(attr.Val, "https://scrapeme.live/shop/") && !q.contains(attr.Val) {
 						q.append(attr.Val)
-						fmt.Printf("Added element %s\n", attr.Val)
 					}
 
 				}
@@ -26,24 +27,46 @@ func Getallnodes(node *html.Node, q *Queue) {
 			crawl(child)
 		}
 	}
+
 	crawl(node)
+}
+
+var (
+	failed int
+)
+
+func worker(q *Queue, wg *sync.WaitGroup) {
+	defer wg.Done()
+	curr := q.popleft()
+	if curr == "" {
+		return
+	}
+	res, err := http.Get(curr)
+	if err != nil {
+		failed += 1
+		return
+	}
+	doc, _ := html.Parse(res.Body)
+	Getallnodes(doc, q)
 }
 
 func main() {
 	q := &Queue{}
 	q.append("https://scrapeme.live/shop/")
+	wg := new(sync.WaitGroup)
+	start := time.Now()
 	for len(q.Elements) > 0 {
-		curr := q.popleft()
-		fmt.Printf("Popped element %s\n", curr)
-		res, err := http.Get(curr)
-		if err != nil {
-			fmt.Print("error occured")
+		for i := 0; i < len(q.Elements); i++ {
+			wg.Add(1)
+			go worker(q, wg)
 		}
-		doc, _ := html.Parse(res.Body)
-
-		Getallnodes(doc, q)
-
+		wg.Wait()
 	}
+	fmt.Println(len(q.Elements))
+	fmt.Println(len(q.history))
+	fmt.Println(failed)
+	fmt.Println(time.Since(start))
+
 }
 
 type Queue struct {
@@ -57,13 +80,18 @@ func (q *Queue) append(element string) {
 }
 
 func (q *Queue) popleft() string {
-	element := q.Elements[0]
-	if len(q.Elements) == 1 {
-		q.Elements = nil
+	if len(q.Elements) > 0 {
+		element := q.Elements[0]
+		if len(q.Elements) == 1 {
+			q.Elements = nil
+			return element
+		}
+		q.Elements = q.Elements[1:]
 		return element
+	} else {
+		return ""
 	}
-	q.Elements = q.Elements[1:]
-	return element
+
 }
 
 func (q *Queue) contains(element string) bool {
