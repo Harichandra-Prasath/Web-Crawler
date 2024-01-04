@@ -16,7 +16,8 @@ func Getallnodes(node *html.Node, q *Queue) {
 		if node.Type == html.ElementNode && node.Data == "a" {
 			for _, attr := range node.Attr {
 				if attr.Key == "href" {
-					if strings.HasPrefix(attr.Val, "https://scrapeme.live/shop/") && !q.contains(attr.Val) {
+					_, ok := q.history[attr.Val]
+					if strings.HasPrefix(attr.Val, "https://scrapeme.live/shop/") && !ok {
 						q.append(attr.Val)
 					}
 
@@ -52,6 +53,7 @@ func worker(q *Queue, wg *sync.WaitGroup) {
 
 func main() {
 	q := &Queue{}
+	q.history = make(map[string]bool)
 	q.append("https://scrapeme.live/shop/")
 	wg := new(sync.WaitGroup)
 	start := time.Now()
@@ -71,12 +73,12 @@ func main() {
 
 type Queue struct {
 	Elements []string
-	history  []string
+	history  map[string]bool
 }
 
 func (q *Queue) append(element string) {
 	q.Elements = append(q.Elements, element)
-	q.history = append(q.history, element)
+	q.history[element] = true
 }
 
 func (q *Queue) popleft() string {
@@ -92,13 +94,4 @@ func (q *Queue) popleft() string {
 		return ""
 	}
 
-}
-
-func (q *Queue) contains(element string) bool {
-	for _, el := range q.history {
-		if el == element {
-			return true
-		}
-	}
-	return false
 }
