@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	failed int
+	failed  int
+	success int
 )
 
 func worker(q *utils.Queue, wg *sync.WaitGroup) {
@@ -25,6 +26,7 @@ func worker(q *utils.Queue, wg *sync.WaitGroup) {
 		failed += 1
 		return
 	}
+	success += 1
 	doc, _ := html.Parse(res.Body)
 	utils.Getallnodes(doc, q)
 }
@@ -44,6 +46,6 @@ func main() {
 	fmt.Println(len(q.Elements))
 	fmt.Println(len(q.History))
 	fmt.Println(failed)
+	fmt.Println(success)
 	fmt.Println(time.Since(start))
-
 }
