@@ -2,6 +2,7 @@ package utils
 
 import (
 	"strings"
+	"sync"
 
 	"golang.org/x/net/html"
 )
@@ -9,14 +10,18 @@ import (
 type Queue struct {
 	Elements []string
 	History  map[string]bool
+	mu       sync.RWMutex
 }
 
 func (q *Queue) Append(element string) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	q.Elements = append(q.Elements, element)
 	q.History[element] = true
 }
 
 func (q *Queue) Popleft() string {
+
 	if len(q.Elements) == 0 {
 		return ""
 	} else {

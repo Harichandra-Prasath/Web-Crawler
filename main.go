@@ -15,12 +15,8 @@ var (
 	success int
 )
 
-func worker(q *utils.Queue, wg *sync.WaitGroup) {
+func worker(q *utils.Queue, wg *sync.WaitGroup, curr string) {
 	defer wg.Done()
-	curr := q.Popleft()
-	if curr == "" {
-		return
-	}
 	res, err := http.Get(curr)
 	if err != nil {
 		failed += 1
@@ -35,11 +31,12 @@ func main() {
 	q := utils.GetQueue()
 	q.Append("https://scrapeme.live/shop/")
 	wg := new(sync.WaitGroup)
-	start := time.Now()
+	start_time := time.Now()
 	for len(q.Elements) > 0 {
 		for i := 0; i < len(q.Elements); i++ {
 			wg.Add(1)
-			go worker(q, wg)
+			curr := q.Popleft()
+			go worker(q, wg, curr)
 		}
 		wg.Wait()
 	}
@@ -47,5 +44,5 @@ func main() {
 	fmt.Println(len(q.History))
 	fmt.Println(failed)
 	fmt.Println(success)
-	fmt.Println(time.Since(start))
+	fmt.Println(time.Since(start_time))
 }
