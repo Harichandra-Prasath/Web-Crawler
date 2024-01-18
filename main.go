@@ -15,7 +15,7 @@ var (
 	success int
 )
 
-func worker(q *utils.Queue, wg *sync.WaitGroup, curr string) {
+func worker(q *utils.Queue, wg *sync.WaitGroup, curr string, root string) {
 	defer wg.Done()
 	res, err := http.Get(curr)
 	if err != nil {
@@ -24,19 +24,24 @@ func worker(q *utils.Queue, wg *sync.WaitGroup, curr string) {
 	}
 	success += 1
 	doc, _ := html.Parse(res.Body)
-	utils.Getallnodes(doc, q)
+	utils.Getallnodes(doc, wg, q, root)
+
 }
 
 func main() {
 	q := utils.GetQueue()
-	q.Append("https://scrapeme.live/shop/")
+	root := "https://transform.tools/"
+	q.Append(root)
 	wg := new(sync.WaitGroup)
 	start_time := time.Now()
 	for len(q.Elements) > 0 {
+		//fmt.Println(q.Elements)
 		for i := 0; i < len(q.Elements); i++ {
 			wg.Add(1)
 			curr := q.Popleft()
-			go worker(q, wg, curr)
+			//fmt.Println("Popped element: ", curr)
+			go worker(q, wg, curr, root)
+
 		}
 		wg.Wait()
 	}

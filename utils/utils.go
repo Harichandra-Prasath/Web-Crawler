@@ -20,6 +20,14 @@ func (q *Queue) Append(element string) {
 	q.History[element] = true
 }
 
+func (q *Queue) Check(element string) bool {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+	_, ok := q.History[element]
+	return ok
+
+}
+
 func (q *Queue) Popleft() string {
 
 	if len(q.Elements) == 0 {
@@ -38,15 +46,24 @@ func GetQueue() *Queue {
 	return q
 }
 
-func Getallnodes(node *html.Node, q *Queue) {
+func Getallnodes(node *html.Node, wg *sync.WaitGroup, q *Queue, root string) {
+	var url string
 	var crawl func(*html.Node)
 	crawl = func(node *html.Node) {
+
 		if node.Type == html.ElementNode && node.Data == "a" {
 			for _, attr := range node.Attr {
 				if attr.Key == "href" {
-					_, ok := q.History[attr.Val]
-					if strings.HasPrefix(attr.Val, "https://scrapeme.live/shop/") && !ok {
-						q.Append(attr.Val)
+
+					if strings.HasPrefix(attr.Val, "/") { //to capture the realtive paths
+						url = root + strings.TrimPrefix(attr.Val, "/")
+					} else {
+						url = attr.Val
+					}
+					ok := q.Check(url)
+					if strings.HasPrefix(url, root) && !ok {
+						q.Append(url)
+						//fmt.Println(url)
 					}
 
 				}
