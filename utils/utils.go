@@ -41,22 +41,24 @@ func GetQueue() *Queue {
 	return q
 }
 
-func Getallnodes(node *html.Node, q *Queue, root string) {
+func Getallnodes(node *html.Node, q *Queue, root string, same_domian bool) {
 	var url string
 	var crawl func(*html.Node)
 	crawl = func(node *html.Node) {
 		if node.Type == html.ElementNode && node.Data == "a" {
 			for _, attr := range node.Attr {
 				if attr.Key == "href" {
+					if same_domian {
+						if strings.HasPrefix(attr.Val, "/") { //to capture the realtive paths
+							url = root + strings.TrimPrefix(attr.Val, "/")
+							q.Append(url)
+						} else if strings.HasPrefix(attr.Val, root) {
+							url = attr.Val
+							q.Append(url)
+						}
 
-					if strings.HasPrefix(attr.Val, "/") { //to capture the realtive paths
-						url = root + strings.TrimPrefix(attr.Val, "/")
 					} else {
-						url = attr.Val
-					}
-
-					if strings.HasPrefix(url, root) {
-						q.Append(url)
+						q.Append(attr.Val)
 					}
 
 				}
