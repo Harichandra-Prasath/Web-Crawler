@@ -26,7 +26,7 @@ func worker(q *utils.Queue, wg *sync.WaitGroup, curr string, root string, same_d
 	}
 	success += 1
 	doc, _ := html.Parse(res.Body)
-	utils.Getallnodes(doc, q, root, same_domain)
+	utils.Getallnodes(doc, q, root, same_domain, curr)
 
 }
 

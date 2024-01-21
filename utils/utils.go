@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -41,7 +42,7 @@ func GetQueue() *Queue {
 	return q
 }
 
-func Getallnodes(node *html.Node, q *Queue, root string, same_domian bool) {
+func Getallnodes(node *html.Node, q *Queue, root string, same_domian bool, curr string) {
 	var url string
 	var crawl func(*html.Node)
 	crawl = func(node *html.Node) {
@@ -58,7 +59,21 @@ func Getallnodes(node *html.Node, q *Queue, root string, same_domian bool) {
 						}
 
 					} else {
-						q.Append(attr.Val)
+						if strings.HasPrefix(attr.Val, "/") {
+							if strings.HasPrefix(curr, root) {
+								url = root + strings.TrimPrefix(attr.Val, "/")
+								q.Append(url)
+							} else {
+								url = curr + strings.TrimPrefix(attr.Val, "/")
+								q.Append(url)
+							}
+						} else {
+							if !strings.HasPrefix(attr.Val, "#") && attr.Val != "" { //to cut off sections
+								fmt.Println(curr, attr.Val)
+								q.Append(attr.Val)
+							}
+						}
+
 					}
 
 				}
