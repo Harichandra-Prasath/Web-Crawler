@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 
@@ -69,7 +68,6 @@ func Getallnodes(node *html.Node, q *Queue, root string, same_domian bool, curr 
 							}
 						} else {
 							if !strings.HasPrefix(attr.Val, "#") && attr.Val != "" { //to cut off sections
-								fmt.Println(curr, attr.Val)
 								q.Append(attr.Val)
 							}
 						}

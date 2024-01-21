@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"sync"
@@ -30,17 +31,49 @@ func worker(q *utils.Queue, wg *sync.WaitGroup, curr string, root string, same_d
 
 }
 
-func Crawl(root string, same_domain bool, generate bool, depth int) {
+func Intiate(root string, same_domain bool, generate bool, depth int) {
+	start_time := time.Now()
 	q := utils.GetQueue()
-	links := bytes.Buffer{}
+	q.Append(root)
+	fmt.Println()
+	slog.Info("Crawling initiated for root", "url", root)
 	if generate {
-		file, _ := os.Create("links.txt")
-		defer end(file, &links)
+		home, _ := os.UserHomeDir()
+		file, _ := os.Create(fmt.Sprintf("%s/output.txt", home))
+		links := bytes.Buffer{}
+		deepen_gen(q, depth, root, same_domain, &links)
+		defer end(file, &links, home)
+	} else {
+		deepen(q, depth, root, same_domain)
+	}
+	fmt.Println()
+	fmt.Println("Current Links in the Queue   : ", len(q.Elements))
+	fmt.Println("Total Links Scraped          : ", len(q.History))
+	fmt.Println("Failures                     : ", failed)
+	fmt.Println("No of Links Crawled          : ", success)
+	fmt.Println("Total time                   : ", time.Since(start_time))
+	fmt.Println()
+
+}
+
+func end(file *os.File, links *bytes.Buffer, home string) {
+	slog.Info("Generating the file...")
+	_, err := file.Write(links.Bytes())
+	if err != nil {
+		slog.Info("Error in generating the file")
+		slog.Error(err.Error())
+	} else {
+		slog.Info("File Successfuly Generated")
+		slog.Info("output.txt generated at", "location", home)
+		fmt.Println()
 	}
 
-	q.Append(root)
+	file.Close()
+}
+
+func deepen_gen(q *utils.Queue, depth int, root string, same_domain bool, links *bytes.Buffer) {
 	wg := new(sync.WaitGroup)
-	start_time := time.Now()
+
 	for i := 0; i < depth; i++ {
 		if len(q.Elements) == 0 {
 			break
@@ -54,17 +87,24 @@ func Crawl(root string, same_domain bool, generate bool, depth int) {
 			links.WriteString(fmt.Sprintf("            - %s\n", curr))
 		}
 		wg.Wait()
-
+		slog.Info("Crawling Done for ", "level", i+1)
 	}
-	fmt.Println("Current Links in the Queue: ", len(q.Elements))
-	fmt.Println("Total Links Scraped:        ", len(q.History))
-	fmt.Println("Failures:                   ", failed)
-	fmt.Println("No of Links Crawled:        ", success)
-	fmt.Println("Total time:                 ", time.Since(start_time))
-
 }
 
-func end(file *os.File, links *bytes.Buffer) {
-	file.Write(links.Bytes())
-	file.Close()
+func deepen(q *utils.Queue, depth int, root string, same_domain bool) {
+	wg := new(sync.WaitGroup)
+
+	for i := 0; i < depth; i++ {
+		if len(q.Elements) == 0 {
+			break
+		}
+		length := len(q.Elements)
+		for i := 0; i < length; i++ {
+			wg.Add(1)
+			curr := q.Popleft()
+			go worker(q, wg, curr, root, same_domain)
+		}
+		wg.Wait()
+
+	}
 }

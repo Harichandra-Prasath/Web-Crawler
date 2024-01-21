@@ -1,5 +1,7 @@
 package cmd
 
+// subcommand "crawl"
+
 import (
 	"fmt"
 	"net/http"
@@ -9,7 +11,7 @@ import (
 
 var crawlcmd = &cobra.Command{
 	Use:   "crawl",
-	Short: "Main subcommand of crawl..Entrypoint",
+	Short: "Main subcommand of crawler..Entrypoint",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		root_url, _ := cmd.Flags().GetString("url")
 		depth, _ := cmd.Flags().GetInt("depth")
@@ -26,7 +28,7 @@ var crawlcmd = &cobra.Command{
 				fmt.Printf("Error in root url")
 				return err
 			}
-			Crawl(root_url, same_domain, to_generate, depth)
+			Intiate(root_url, same_domain, to_generate, depth)
 
 		}
 		return nil

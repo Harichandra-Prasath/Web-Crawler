@@ -7,8 +7,8 @@ import (
 )
 
 var rootcmd = &cobra.Command{
-	Use:   "crawler",
-	Short: "Crawl all the links",
+	Use:   "Web-Crawler",
+	Short: "Crawl all the links from root",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if ok, _ := cmd.Flags().GetBool("version"); ok {
 			fmt.Println("version 1.0")
