@@ -44,7 +44,7 @@ var crawlcmd = &cobra.Command{
 func init() {
 	rootcmd.AddCommand(crawlcmd)
 	crawlcmd.PersistentFlags().String("url", "", "Root url to start the scraping")
-	crawlcmd.PersistentFlags().Bool("same-domain", false, "Crawling and scraping from same domains")
+	crawlcmd.PersistentFlags().Bool("root-relative", false, "Crawling and scraping from same domain with root path")
 	crawlcmd.PersistentFlags().Bool("generate", false, "Generate a .txt file with all the links crawled")
 	crawlcmd.PersistentFlags().Int("depth", -1, "Defines the depth level of crawling including root")
 
