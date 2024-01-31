@@ -31,7 +31,7 @@ func worker(q *utils.Queue, wg *sync.WaitGroup, curr string, root string, same_d
 
 }
 
-func Intiate(root string, same_domain bool, generate bool, depth int) {
+func Intiate(root string, root_relative bool, generate bool, depth int) {
 	start_time := time.Now()
 	q := utils.GetQueue()
 	q.Append(root)
@@ -41,10 +41,10 @@ func Intiate(root string, same_domain bool, generate bool, depth int) {
 		home, _ := os.UserHomeDir()
 		file, _ := os.Create(fmt.Sprintf("%s/output.txt", home))
 		links := bytes.Buffer{}
-		deepen_gen(q, depth, root, same_domain, &links)
+		deepen_gen(q, depth, root, root_relative, &links)
 		defer end(file, &links, home)
 	} else {
-		deepen(q, depth, root, same_domain)
+		deepen(q, depth, root, root_relative)
 	}
 	fmt.Println()
 	fmt.Println("Current Links in the Queue   : ", len(q.Elements))

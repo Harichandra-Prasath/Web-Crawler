@@ -15,7 +15,7 @@ var crawlcmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		root_url, _ := cmd.Flags().GetString("url")
 		depth, _ := cmd.Flags().GetInt("depth")
-		same_domain, _ := cmd.Flags().GetBool("same-domain")
+		root_relative, _ := cmd.Flags().GetBool("root-relative")
 		to_generate, _ := cmd.Flags().GetBool("generate")
 		if depth == -1 {
 			return fmt.Errorf("depth is required for crawling")
@@ -28,7 +28,13 @@ var crawlcmd = &cobra.Command{
 				fmt.Printf("Error in root url")
 				return err
 			}
-			Intiate(root_url, same_domain, to_generate, depth)
+			// As there is no usage of url librarys for validation
+			// we have to mainpulate strings to get the best results
+
+			if root_url[len(root_url)-1] != '/' { // This is additonal logic to get relative paths
+				root_url += "/"
+			}
+			Intiate(root_url, root_relative, to_generate, depth)
 
 		}
 		return nil
